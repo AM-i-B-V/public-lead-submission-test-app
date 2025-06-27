@@ -1,7 +1,6 @@
-// Turnstile Configuration
-const SITE_KEY = "0x4AAAAAABieDUc9ZFiqYccD"; // Replace with your actual site key
-// const API_ENDPOINT = "https://public-lead-submission.dev.am-i.nl/api/leads";
-const API_ENDPOINT = "http://localhost:56392/api/leads";
+// Turnstile Configuration - using Vite's import.meta.env
+const SITE_KEY = import.meta.env.VITE_SITE_KEY;
+const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT;
 
 // Store form data temporarily
 let formDataToSubmit = null;
