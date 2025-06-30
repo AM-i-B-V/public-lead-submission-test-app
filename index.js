@@ -16,7 +16,7 @@ const statusMessage = document.getElementById("statusMessage");
 function setSubmitEnabled(enabled) {
   submitBtn.disabled = !enabled;
   submitBtn.style.cursor = enabled ? "pointer" : "not-allowed";
-  submitBtn.style.backgroundColor = enabled ? "#56ab2f" : "#ccc";
+  submitBtn.style.backgroundColor = enabled ? "rgb(218, 33, 44)" : "#ccc";
 }
 
 // Function to reset/refresh Turnstile token

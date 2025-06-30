@@ -11,75 +11,74 @@
 </head>
 
 <body>
-  <div class="container">
-    <h1>Lead Submission Form</h1>
+  <div class="form-outer">
+    <div class="container">
+      <h1>Lead Submission Form</h1>
 
-    <form id="leadForm" class="lead-form">
-      <!-- Required Lead Information -->
-      <div class="form-section">
-        <h2>Lead Information</h2>
-        <div class="form-group">
-          <label for="dealerId">Dealer ID *</label>
-          <input type="text" id="dealerId" name="dealerId" value="DEALER123" required>
+      <form id="leadForm" class="lead-form">
+        <!-- Required Lead Information -->
+        <div class="form-section">
+          <h2>Lead Information</h2>
+          <div class="form-group">
+            <label for="dealerId">Dealer ID *</label>
+            <input type="text" id="dealerId" name="dealerId" value="DEALER123" required>
+          </div>
+
+          <div class="form-group">
+            <label for="initiative">Initiative *</label>
+            <input type="text" id="initiative" name="initiative" value="Website Contact Form" required>
+          </div>
+
+          <div class="form-group">
+            <label for="source">Source *</label>
+            <input type="text" id="source" name="source" value="Company Website" required>
+          </div>
+
+          <div class="form-group">
+            <label for="leadType">Lead Type *</label>
+            <select id="leadType" name="leadType" required>
+              <option value="">Select Lead Type</option>
+              <option value="InformationRequest" selected>Information Request</option>
+              <option value="TestDrive">Test Drive</option>
+              <option value="OfferRequest">Offer Request</option>
+              <option value="TradeInRequest">Trade In Request</option>
+              <option value="LeaseRequest">Lease Request</option>
+              <option value="ContactMe">Contact Me</option>
+              <option value="Bid">Bid</option>
+              <option value="Complaint">Complaint</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Appraisal">Appraisal</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="initiative">Initiative *</label>
-          <input type="text" id="initiative" name="initiative" value="Website Contact Form" required>
+        <!-- Required Prospect Information -->
+        <div class="form-section">
+          <h2>Prospect Information</h2>
+          <div class="form-group">
+            <label for="lastName">Last Name *</label>
+            <input type="text" id="lastName" name="lastName" value="TestUser" required>
+          </div>
+
+          <div class="form-group">
+            <label for="emailAddress">Email Address *</label>
+            <input type="email" id="emailAddress" name="emailAddress" value="test@example.com" required>
+          </div>
         </div>
+      </form>
 
-        <div class="form-group">
-          <label for="source">Source *</label>
-          <input type="text" id="source" name="source" value="Company Website" required>
-        </div>
+      <!-- Status Messages -->
+      <div id="statusMessage" class="status-message"></div>
+    </div>
 
-        <div class="form-group">
-          <label for="leadType">Lead Type *</label>
-          <select id="leadType" name="leadType" required>
-            <option value="">Select Lead Type</option>
-            <option value="InformationRequest" selected>Information Request</option>
-            <option value="TestDrive">Test Drive</option>
-            <option value="OfferRequest">Offer Request</option>
-            <option value="TradeInRequest">Trade In Request</option>
-            <option value="LeaseRequest">Lease Request</option>
-            <option value="ContactMe">Contact Me</option>
-            <option value="Bid">Bid</option>
-            <option value="Complaint">Complaint</option>
-            <option value="Maintenance">Maintenance</option>
-            <option value="Appraisal">Appraisal</option>
-            <option value="Other">Other</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Required Prospect Information -->
-      <div class="form-section">
-        <h2>Prospect Information</h2>
-        <div class="form-group">
-          <label for="lastName">Last Name *</label>
-          <input type="text" id="lastName" name="lastName" value="TestUser" required>
-        </div>
-
-        <div class="form-group">
-          <label for="emailAddress">Email Address *</label>
-          <input type="email" id="emailAddress" name="emailAddress" value="test@example.com" required>
-        </div>
-      </div>
-
-      <!-- Turnstile Container -->
-      <div class="form-section">
-        <h2>Verification</h2>
-        <div id="turnstile-container" class="turnstile-container"></div>
-      </div>
-
-      <!-- Form Buttons -->
+    <!-- Fixed Bottom Actions OUTSIDE the container -->
+    <div class="fixed-bottom-actions">
+      <div id="turnstile-container" class="turnstile-container"></div>
       <div class="form-buttons">
-        <button type="submit" id="submitBtn" class="btn btn-success">Submit Lead</button>
+        <button type="submit" form="leadForm" id="submitBtn" class="btn btn-success">Submit Lead</button>
       </div>
-    </form>
-
-    <!-- Status Messages -->
-    <div id="statusMessage" class="status-message"></div>
+    </div>
   </div>
 
   <script type="module" src="index.js"></script>
