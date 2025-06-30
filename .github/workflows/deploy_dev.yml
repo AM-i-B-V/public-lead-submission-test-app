@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Pages
+name: Deploy to dev
 
 on:
   push:
@@ -23,6 +23,9 @@ jobs:
         run: npm ci
 
       - name: Build application
+        env:
+          VITE_SITE_KEY: ${{ secrets.VITE_SITE_KEY }}
+          VITE_API_ENDPOINT: ${{ secrets.VITE_API_ENDPOINT }}
         run: npm run build
 
       - name: Upload build artifacts
