@@ -1,7 +1,8 @@
 {
   "name": "public-lead-submission-test-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "Lead submission test application - Production: https://public-lead-submission-test.am-i.io",
+  "homepage": "https://public-lead-submission-test.am-i.io",
   "main": "index.js",
   "directories": {
     "doc": "docs"
