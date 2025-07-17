@@ -145,10 +145,6 @@ async function handleFormSubmit(event) {
   try {
     // Structure the data according to the API schema
     const leadPayload = {
-      // Turnstile verification
-      sitekey: formDataToSubmit.siteKey,
-      token: formDataToSubmit.token,
-
       // Required lead fields
       initiative: data.initiative,
       source: data.source,
@@ -201,6 +197,8 @@ async function handleFormSubmit(event) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Site-Key": formDataToSubmit.siteKey,
+        "Turnstile-Token": formDataToSubmit.token,
       },
       body: JSON.stringify(leadPayload),
     });
