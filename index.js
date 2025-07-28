@@ -2,6 +2,9 @@
 const SITE_KEY = import.meta.env.VITE_SITE_KEY;
 const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT;
 
+// Import dealer data
+import { getDealersForDropdown } from "./dealers.js";
+
 // Store form data temporarily
 let formDataToSubmit = null;
 let widgetId = null; // Store widget ID for reset
@@ -89,6 +92,21 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function initializeForm() {
+  // Initialize dealer dropdown
+  const dealerSelect = document.getElementById("dealerId");
+  console.log("Dealer select element:", dealerSelect);
+
+  const dealers = getDealersForDropdown();
+  console.log("Dealers data:", dealers);
+
+  dealers.forEach((dealer) => {
+    const option = document.createElement("option");
+    option.value = dealer.value;
+    option.textContent = dealer.label;
+    dealerSelect.appendChild(option);
+    console.log("Added dealer option:", dealer);
+  });
+
   // Show status message
   showStatus(
     "Please fill out the form and complete the verification to continue.",
