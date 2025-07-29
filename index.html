@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lead Submission Form</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Turnstile API script with explicit rendering -->
+  <!-- Cloudflare Turnstile API script with explicit rendering -->
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 </head>
 
@@ -15,6 +15,7 @@
     <div class="container">
       <h1>Lead Submission Form</h1>
 
+      <!-- Form Section -->
       <form id="leadForm" class="lead-form">
         <!-- Required Lead Information -->
         <div class="form-section">
@@ -74,7 +75,7 @@
       <div id="statusMessage" class="status-message"></div>
     </div>
 
-    <!-- Fixed Bottom Actions OUTSIDE the container -->
+    <!-- Actions Section -->
     <div class="fixed-bottom-actions">
       <div id="turnstile-container" class="turnstile-container"></div>
       <div class="form-buttons">
@@ -82,7 +83,7 @@
       </div>
     </div>
   </div>
-
+  <!-- Application Scripts -->
   <script type="module" src="index.js"></script>
 </body>
 

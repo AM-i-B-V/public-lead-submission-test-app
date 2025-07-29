@@ -30,10 +30,6 @@ const dealersJSON = `
     "dealerName": "Occasion Kampioen"
   },
   {
-    "dealerId": "555603767",
-    "dealerName": "test-olcay"
-  },
-  {
     "dealerId": "698351",
     "dealerName": "Mulder Mazda Rotterdam-Zuid"
   }

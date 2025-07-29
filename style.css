@@ -358,6 +358,7 @@ body {
   --fixed-actions-height: 70px;
   --primary-red: rgb(218, 33, 44);
   --main-text: rgb(50, 60, 73);
+  --disabled-color: #cccc;
 }
 
 /* Update buttons and headings to use new colors */

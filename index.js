@@ -1,175 +1,145 @@
-// Turnstile Configuration - using Vite's import.meta.env
+// Configuration Constants
 const SITE_KEY = import.meta.env.VITE_SITE_KEY;
-const API_ENDPOINT = import.meta.env.VITE_API_ENDPOINT;
+const SALES_LEADS_WIDGET_URL = import.meta.env.VITE_API_ENDPOINT;
 
 // Import dealer data
 import { getDealersForDropdown } from "./dealers.js";
 
-// Store form data temporarily
-let formDataToSubmit = null;
-let widgetId = null; // Store widget ID for reset
-
 // DOM Elements
-const form = document.getElementById("leadForm");
-const submitBtn = document.getElementById("submitBtn");
-const turnstileContainer = document.getElementById("turnstile-container");
-const statusMessage = document.getElementById("statusMessage");
+const elements = {
+  form: document.getElementById("leadForm"),
+  submitBtn: document.getElementById("submitBtn"),
+  turnstileContainer: document.getElementById("turnstile-container"),
+  statusMessage: document.getElementById("statusMessage"),
+};
 
-// Helper to set submit button state
-function setSubmitEnabled(enabled) {
-  submitBtn.disabled = !enabled;
-  submitBtn.style.cursor = enabled ? "pointer" : "not-allowed";
-  submitBtn.style.backgroundColor = enabled ? "rgb(218, 33, 44)" : "#ccc";
-}
+// State Management
+let turnstileCredentials = null;
 
-// Function to reset/refresh Turnstile token
-function refreshTurnstile() {
-  if (widgetId !== null) {
-    window.turnstile.reset(widgetId);
-  }
-  setSubmitEnabled(false);
-  formDataToSubmit = null;
-}
+// UI Utilities
+const UIManager = {
+  setSubmitEnabled(enabled) {
+    elements.submitBtn.disabled = !enabled;
+    elements.submitBtn.style.cursor = enabled ? "pointer" : "not-allowed";
+    elements.submitBtn.style.backgroundColor = enabled
+      ? "var(--primary-red)"
+      : "var(--disabled-color)";
+  },
 
-// Wait for DOM and Turnstile to be ready, then render the widget
-function renderTurnstile() {
-  setSubmitEnabled(false); // Disable while token is not ready
-  widgetId = window.turnstile.render("#turnstile-container", {
-    sitekey: SITE_KEY,
-    appearance: "always", // Always show the widget
-    theme: "light", // Light theme
-    size: "normal", // Normal size
-    action: "submit_form", // Action name for analytics
-    callback: function (token) {
-      formDataToSubmit = { token: token, siteKey: SITE_KEY };
-      setSubmitEnabled(true); // Enable when token is ready
-      console.log("New token generated:", token);
-      showStatus(
-        "Verification successful! You can now submit the form.",
-        "success"
-      );
-    },
-    "error-callback": function () {
-      formDataToSubmit = null;
-      setSubmitEnabled(false); // Disable on error
-      console.log("turnstile challenge failed");
-      showStatus(
-        "There was an error with the Turnstile challenge. Please try again.",
-        "error"
-      );
-    },
-    "expired-callback": function () {
-      formDataToSubmit = null;
-      setSubmitEnabled(false); // Disable on expiration
-      console.log("Token expired, please refresh");
-      showStatus("Turnstile challenge expired. Please verify again.", "error");
-    },
-    "timeout-callback": function () {
-      console.log("Challenge timed out, please try again");
-      showStatus("Challenge timed out, please try again", "error");
-      refreshTurnstile();
-    },
-    "refresh-timeout": "auto", // Auto refresh on timeout
-  });
-}
+  showStatus(message, type) {
+    elements.statusMessage.style.display = "block";
+    elements.statusMessage.textContent = message;
+    elements.statusMessage.className = `status-message ${type}`;
 
-// Initialize the application
-document.addEventListener("DOMContentLoaded", function () {
-  initializeForm();
-  setupEventListeners();
-
-  // Initialize Turnstile
-  if (window.turnstile) {
-    renderTurnstile();
-  } else {
-    const interval = setInterval(() => {
-      if (window.turnstile) {
-        clearInterval(interval);
-        renderTurnstile();
-      }
-    }, 100);
-  }
-});
-
-function initializeForm() {
-  // Initialize dealer dropdown
-  const dealerSelect = document.getElementById("dealerId");
-  console.log("Dealer select element:", dealerSelect);
-
-  const dealers = getDealersForDropdown();
-  console.log("Dealers data:", dealers);
-
-  dealers.forEach((dealer) => {
-    const option = document.createElement("option");
-    option.value = dealer.value;
-    option.textContent = dealer.label;
-    dealerSelect.appendChild(option);
-    console.log("Added dealer option:", dealer);
-  });
-
-  // Show status message
-  showStatus(
-    "Please fill out the form and complete the verification to continue.",
-    "info"
-  );
-}
-
-function setupEventListeners() {
-  // Form submission
-  form.addEventListener("submit", handleFormSubmit);
-
-  // Form field changes to enable/disable submit button
-  const requiredFields = form.querySelectorAll("[required]");
-  requiredFields.forEach((field) => {
-    field.addEventListener("input", validateRequiredFields);
-  });
-
-  // Initial validation
-  validateRequiredFields();
-}
-
-function validateRequiredFields() {
-  const requiredFields = form.querySelectorAll("[required]");
-  let allFilled = true;
-
-  requiredFields.forEach((field) => {
-    if (!field.value.trim()) {
-      allFilled = false;
+    if (type === "success") {
+      setTimeout(() => {
+        elements.statusMessage.style.display = "none";
+      }, 5000);
     }
-  });
+  },
+};
 
-  // Only enable submit if both form is filled AND we have a token
-  const canSubmit = allFilled && formDataToSubmit && formDataToSubmit.token;
-  setSubmitEnabled(canSubmit);
-}
+// Turnstile Manager
+const TurnstileManager = (() => {
+  let widgetId = null;
 
-async function handleFormSubmit(event) {
-  event.preventDefault();
+  const handleCallback = (token) => {
+    turnstileCredentials = { token, siteKey: SITE_KEY };
+    UIManager.setSubmitEnabled(true);
+    console.log("New token generated:", token);
+    UIManager.showStatus(
+      "Verification successful! You can now submit the form.",
+      "success"
+    );
+  };
 
-  // Ensure we have a valid token
-  if (!formDataToSubmit || !formDataToSubmit.token) {
-    showStatus("Please complete the verification first.", "error");
-    return;
-  }
+  const handleError = () => {
+    turnstileCredentials = null;
+    UIManager.setSubmitEnabled(false);
+    console.log("turnstile challenge failed");
+    UIManager.showStatus(
+      "There was an error with the Turnstile challenge. Please try again.",
+      "error"
+    );
+  };
 
-  setSubmitEnabled(false); // Disable while submitting
-  const formData = new FormData(event.target);
-  const data = {};
-  formData.forEach((value, key) => {
-    data[key] = value;
-  });
-  console.log("Form submitted:", data);
+  const handleExpired = () => {
+    turnstileCredentials = null;
+    UIManager.setSubmitEnabled(false);
+    console.log("Token expired, please refresh");
+    UIManager.showStatus(
+      "Turnstile challenge expired. Please verify again.",
+      "error"
+    );
+  };
 
-  try {
-    // Structure the data according to the API schema
+  const handleTimeout = () => {
+    console.log("Challenge timed out, please try again");
+    UIManager.showStatus("Challenge timed out, please try again", "error");
+    refresh();
+  };
+
+  const refresh = () => {
+    if (widgetId !== null) {
+      window.turnstile.reset(widgetId);
+    }
+    UIManager.setSubmitEnabled(false);
+    turnstileCredentials = null;
+  };
+
+  const render = () => {
+    UIManager.setSubmitEnabled(false);
+    widgetId = window.turnstile.render("#turnstile-container", {
+      sitekey: SITE_KEY,
+      appearance: "always",
+      theme: "light",
+      size: "normal",
+      action: "submit_form",
+      callback: handleCallback,
+      "error-callback": handleError,
+      "expired-callback": handleExpired,
+      "timeout-callback": handleTimeout,
+      "refresh-timeout": "auto",
+    });
+  };
+
+  return {
+    render,
+    refresh,
+  };
+})();
+
+// Form Manager
+const FormManager = (() => {
+  const initializeDealerDropdown = () => {
+    const dealerSelect = document.getElementById("dealerId");
+    const dealers = getDealersForDropdown();
+
+    dealers.forEach((dealer) => {
+      const option = document.createElement("option");
+      option.value = dealer.value;
+      option.textContent = dealer.label;
+      dealerSelect.appendChild(option);
+    });
+  };
+
+  const validate = () => {
+    const requiredFields = elements.form.querySelectorAll("[required]");
+    const allFilled = Array.from(requiredFields).every(
+      (field) => field.value.trim() !== ""
+    );
+
+    const canSubmit =
+      allFilled && turnstileCredentials && turnstileCredentials.token;
+    UIManager.setSubmitEnabled(canSubmit);
+  };
+
+  const buildLeadPayload = (data) => {
     const leadPayload = {
-      // Required lead fields
       initiative: data.initiative,
       source: data.source,
       leadType: data.leadType,
       dealerId: data.dealerId,
-
-      // Prospect information
       prospect: {
         firstName: data.firstName,
         lastName: data.lastName,
@@ -179,8 +149,6 @@ async function handleFormSubmit(event) {
         company: data.company,
         preferredCommunicationChannel: data.preferredCommunicationChannel,
       },
-
-      // Optional fields
       title: data.title,
       customerMessage: data.customerMessage,
       channel: data.channel,
@@ -189,19 +157,16 @@ async function handleFormSubmit(event) {
       correlationId: data.correlationId,
       externalLink: data.externalLink,
       advertisementLink: data.advertisementLink,
-
-      // Default values
       isExternalSystemLeading: false,
     };
 
-    // Remove undefined values
+    // Clean up undefined and empty values
     Object.keys(leadPayload).forEach((key) => {
       if (leadPayload[key] === undefined || leadPayload[key] === "") {
         delete leadPayload[key];
       }
     });
 
-    // Clean prospect object
     Object.keys(leadPayload.prospect).forEach((key) => {
       if (
         leadPayload.prospect[key] === undefined ||
@@ -211,55 +176,94 @@ async function handleFormSubmit(event) {
       }
     });
 
-    const response = await fetch(API_ENDPOINT, {
+    return leadPayload;
+  };
+
+  const submitLead = async (leadPayload) => {
+    const response = await fetch(SALES_LEADS_WIDGET_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Site-Key": formDataToSubmit.siteKey,
-        "Turnstile-Token": formDataToSubmit.token,
+        "Site-Key": turnstileCredentials.siteKey,
+        "Turnstile-Token": turnstileCredentials.token,
       },
       body: JSON.stringify(leadPayload),
     });
-    const responseData = await response.json();
-    console.log("Response:", responseData);
 
     if (!response.ok) {
       throw new Error(
         responseData.message || `HTTP error! status: ${response.status}`
       );
     }
+  };
 
-    showStatus("Lead submitted successfully!", "success");
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-    // Reset Turnstile after successful submission - EXACTLY like script2-works.js
-    refreshTurnstile();
-  } catch (error) {
-    refreshTurnstile();
-    console.error("Error submitting form:", error);
-    showStatus(
-      "There was an error submitting the form. Please try again.",
-      "error"
+    if (!turnstileCredentials || !turnstileCredentials.token) {
+      UIManager.showStatus("Please complete the verification first.", "error");
+      return;
+    }
+
+    UIManager.setSubmitEnabled(false);
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData);
+    console.log("Form submitted:", data);
+
+    try {
+      const leadPayload = buildLeadPayload(data);
+      await submitLead(leadPayload);
+
+      UIManager.showStatus("Lead submitted successfully!", "success");
+      TurnstileManager.refresh();
+    } catch (error) {
+      TurnstileManager.refresh();
+      console.error("Error submitting form:", error);
+      UIManager.showStatus(
+        "There was an error submitting the form. Please try again.",
+        "error"
+      );
+    }
+  };
+
+  const setupEventListeners = () => {
+    elements.form.addEventListener("submit", handleSubmit);
+
+    const requiredFields = elements.form.querySelectorAll("[required]");
+    requiredFields.forEach((field) => {
+      field.addEventListener("input", validate);
+    });
+
+    validate();
+  };
+
+  const initialize = () => {
+    initializeDealerDropdown();
+    setupEventListeners();
+    UIManager.showStatus(
+      "Please fill out the form and complete the verification to continue.",
+      "info"
     );
+  };
+
+  return {
+    initialize,
+  };
+})();
+
+// Application Initialization
+document.addEventListener("DOMContentLoaded", () => {
+  FormManager.initialize();
+
+  // Initialize Turnstile
+  if (window.turnstile) {
+    TurnstileManager.render();
+  } else {
+    const interval = setInterval(() => {
+      if (window.turnstile) {
+        clearInterval(interval);
+        TurnstileManager.render();
+      }
+    }, 100);
   }
-}
-
-function showStatus(message, type) {
-  statusMessage.textContent = message;
-  statusMessage.className = `status-message ${type}`;
-
-  // Auto-hide success messages after 5 seconds
-  if (type === "success") {
-    setTimeout(() => {
-      statusMessage.style.display = "none";
-    }, 5000);
-  }
-}
-
-// Utility function to handle network errors
-function handleNetworkError(error) {
-  console.error("Network error:", error);
-  showStatus(
-    "Network error. Please check your connection and try again.",
-    "error"
-  );
-}
+});
