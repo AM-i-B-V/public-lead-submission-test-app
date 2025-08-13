@@ -46,7 +46,6 @@ const TurnstileManager = (() => {
   const handleCallback = (token) => {
     turnstileCredentials = { token, siteKey: SITE_KEY };
     UIManager.setSubmitEnabled(true);
-    console.log("New token generated:", token);
     UIManager.showStatus(
       "Verification successful! You can now submit the form.",
       "success"
@@ -208,7 +207,6 @@ const FormManager = (() => {
     UIManager.setSubmitEnabled(false);
     const formData = new FormData(event.target);
     const data = Object.fromEntries(formData);
-    console.log("Form submitted:", data);
 
     try {
       const leadPayload = buildLeadPayload(data);
