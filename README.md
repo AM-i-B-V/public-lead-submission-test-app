@@ -1,8 +1,12 @@
 # Public Lead Submission Test App
 
-## 🌐 Production URL
+## 🌐 URLs
 
-**Live Application:** https://public-lead-submission-test.am-i.io
+| Environment           | URL                                             | Description             |
+| --------------------- | ----------------------------------------------- | ----------------------- |
+| **Development (DEV)** | https://public-lead-submission-test-dev.am-i.io | Development Environment |
+| **Acceptance (ACC)**  | https://public-lead-submission-test-acc.am-i.io | Acceptance Environment  |
+| **Production (PRD)**  | https://public-lead-submission-test.am-i.io     | Production Application  |
 
 ## 🚀 Quick Start
 
@@ -56,7 +60,7 @@ Configured in Cloudflare Pages dashboard:
 
 ## 🔄 Deployment
 
-The application automatically deploys to **https://public-lead-submission-test.am-i.io** when changes are pushed to the `main` branch.
+The application automatically deploys to **https://public-lead-submission-test.dev.am-i.io** when changes are pushed to the `main` branch.
 
 ## 📝 Notes
 

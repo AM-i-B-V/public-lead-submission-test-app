@@ -1,13 +1,17 @@
 name: Deploy to dev
 
 on:
-  push:
-    branches: [main]
+  repository_dispatch:
+    types:
+      - deploy-dev
 
 jobs:
-  # Build and Test Job
-  build-and-test:
+  # Build and Deploy Job
+  build-and-deploy:
     runs-on: ubuntu-24.04
+    environment: 
+      name: dev
+      url: https://public-lead-submission-test.dev.am-i.io
 
     steps:
       - name: Checkout code
@@ -27,25 +31,6 @@ jobs:
           VITE_SITE_KEY: ${{ secrets.VITE_SITE_KEY }}
           VITE_API_ENDPOINT: ${{ secrets.VITE_API_ENDPOINT }}
         run: npm run build
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist-files
-          path: dist/
-          retention-days: 30
-
-  # Deploy to Cloudflare Pages
-  deploy-cloudflare-pages:
-    needs: build-and-test
-    runs-on: ubuntu-24.04
-
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist-files
-          path: dist/
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3

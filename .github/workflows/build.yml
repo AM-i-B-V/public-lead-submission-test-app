@@ -1,0 +1,117 @@
+name: Build worker
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        env:
+          VITE_SITE_KEY: ${{ secrets.VITE_SITE_KEY }}
+          VITE_API_ENDPOINT: ${{ secrets.VITE_API_ENDPOINT }}
+        run: npm run build
+
+  update_release_draft:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_tag: ${{ steps.release_drafter.outputs.tag_name }}
+    steps:
+      # Drafts your next Release notes as Pull Requests are merged into "main"
+      - uses: release-drafter/release-drafter@v6
+        id: release_drafter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  version_bump:
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    needs: [build, update_release_draft]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Bump up app version
+        env:
+          RELEASE_TAG: ${{ needs.update_release_draft.outputs.release_tag }}
+        run: |
+          current_app_version=$(node -p "require('./package.json').version")
+          echo "current_app_version=$current_app_version" >> $GITHUB_ENV
+          APP_VERSION=${RELEASE_TAG:1}
+          echo "DEBUG: current_app_version: '$current_app_version'"
+          echo "DEBUG: APP_VERSION: '$APP_VERSION'"
+          if [[ $current_app_version != $APP_VERSION ]]; then
+            git config user.name "Bot-AM-i"
+            git config user.email "bot@am-i.nl"
+            npm version $APP_VERSION --no-git-tag-version
+            git add package.json package-lock.json
+            git commit -m "[actions skip]chore: release $APP_VERSION"
+            git push
+          else
+            echo "App version is already latest"
+          fi
+      - name: Initiate deployment
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          event-type: deploy-dev
+          client-payload: '{"branch": "${{ github.ref }}"}'
+
+  slack-workflow-status:
+    if: ${{ github.event_name != 'pull_request' && failure() }}
+    name: Post Workflow Status To Slack
+    timeout-minutes: 3
+    needs:
+      - build
+      - version_bump
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Slack Workflow Notification
+        uses: Gamesight/slack-workflow-status@v1.3.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          name: "GitHub Workflow Status"
+          icon_url: "https://avatars.githubusercontent.com/u/9919?s=96&v=4"

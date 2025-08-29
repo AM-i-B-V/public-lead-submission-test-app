@@ -1,0 +1,84 @@
+name: Deploy to production
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Specify the GitHub Release Tag to be deployed to Production, eg, v0.1.0"
+        required: false
+        default: "latest"
+
+permissions:
+  id-token: write
+  contents: write
+  packages: write
+  actions: read
+
+jobs:
+  # Build and Deploy Job
+  build-and-deploy:
+    runs-on: ubuntu-24.04
+    environment:
+      name: prd
+      url: https://public-lead-submission-test.am-i.io
+    outputs:
+      release_tag: ${{ steps.get_tag.outputs.release_tag }}
+      release_version: ${{ steps.get_tag.outputs.NEW_TAG }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Get Image Tags
+        id: get_tag
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            if [ "${{ github.event.inputs.tag }}" == "latest" ]; then
+              NEW_TAG_WITH_PREFIX=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                         "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest" | \
+                         jq -r '.tag_name')
+              echo "release_tag=$NEW_TAG_WITH_PREFIX" >> $GITHUB_OUTPUT
+              NEW_TAG=${NEW_TAG_WITH_PREFIX:1}
+              echo "NEW_TAG=$NEW_TAG" >> $GITHUB_OUTPUT
+            else
+              if ! git rev-parse --verify ${{ github.event.inputs.tag }}; then
+                echo "Invalid tag: ${{ github.event.inputs.tag }}"
+                exit 1
+              fi
+              NEW_TAG_WITH_PREFIX=${{ github.event.inputs.tag }}
+              echo "release_tag=$NEW_TAG_WITH_PREFIX" >> $GITHUB_OUTPUT
+              NEW_TAG=${NEW_TAG_WITH_PREFIX:1}
+              echo "NEW_TAG=$NEW_TAG" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Checkout release tag
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.get_tag.outputs.release_tag }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        env:
+          VITE_SITE_KEY: ${{ secrets.VITE_SITE_KEY }}
+          VITE_API_ENDPOINT: ${{ secrets.VITE_API_ENDPOINT }}
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist/ --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT_NAME }}
