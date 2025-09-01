@@ -1,13 +1,5 @@
 # Public Lead Submission Test App
 
-## 🌐 URLs
-
-| Environment           | URL                                             | Description             |
-| --------------------- | ----------------------------------------------- | ----------------------- |
-| **Development (DEV)** | https://public-lead-submission-test-dev.am-i.io | Development Environment |
-| **Acceptance (ACC)**  | https://public-lead-submission-test-acc.am-i.io | Acceptance Environment  |
-| **Production (PRD)**  | https://public-lead-submission-test.am-i.io     | Production Application  |
-
 ## 🚀 Quick Start
 
 ### Development
@@ -29,7 +21,7 @@ npm run preview
 ### Development (.env)
 
 ```
-VITE_SITE_KEY=0x4AeDUc9ZFiqYccD
+VITE_SITE_KEY=xyxyxyxy
 VITE_API_ENDPOINT=http://localhost:56392/api/leads
 ```
 
@@ -57,10 +49,6 @@ Configured in Cloudflare Pages dashboard:
 ├── wrangler.jsonc      # Cloudflare configuration
 └── .github/workflows/  # CI/CD workflows
 ```
-
-## 🔄 Deployment
-
-The application automatically deploys to **https://public-lead-submission-test.dev.am-i.io** when changes are pushed to the `main` branch.
 
 ## 📝 Notes
 
