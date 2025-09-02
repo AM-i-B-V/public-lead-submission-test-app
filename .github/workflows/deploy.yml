@@ -1,17 +1,25 @@
-name: Deploy to dev
+name: Deploy
 
 on:
-  repository_dispatch:
-    types:
-      - deploy-dev
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Select the environment to deploy to"
+        required: true
+        type: choice
+        options:
+          - dev
+          - acc
+          - prd
+        default: "dev"
 
 jobs:
   # Build and Deploy Job
   build-and-deploy:
     runs-on: ubuntu-24.04
     environment:
-      name: dev
-      url: https://public-lead-submission-test.dev.am-i.io
+      name: ${{ inputs.environment }}
+      url: ${{ inputs.environment == 'dev' && 'https://public-lead-submission-test.dev.am-i.io' || inputs.environment == 'acc' && 'https://public-lead-submission-test.acc.am-i.io' || 'https://public-lead-submission-test.prd.am-i.io' }}
 
     steps:
       - name: Checkout code
