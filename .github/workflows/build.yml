@@ -93,11 +93,6 @@ jobs:
           else
             echo "App version is already latest"
           fi
-      - name: Initiate deployment
-        uses: peter-evans/repository-dispatch@v3
-        with:
-          event-type: deploy-dev
-          client-payload: '{"branch": "${{ github.ref }}"}'
 
   slack-workflow-status:
     if: ${{ github.event_name != 'pull_request' && failure() }}
