@@ -1,6 +1,6 @@
 {
   "name": "public-lead-submission-test-app",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Lead submission test application - Production: https://public-lead-submission-test.am-i.io",
   "homepage": "https://public-lead-submission-test.am-i.io",
   "main": "index.js",
@@ -15,10 +15,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com-adheepgeorge:AM-i-B-V/public-lead-submission-test-app.git"
+    "url": "git@github.com:AM-i-B-V/public-lead-submission-test-app.git"
   },
   "keywords": [],
-  "author": "Adheep KeyValue",
   "license": "ISC",
   "type": "module",
   "devDependencies": {
