@@ -156,7 +156,6 @@ const FormManager = (() => {
       correlationId: data.correlationId,
       externalLink: data.externalLink,
       advertisementLink: data.advertisementLink,
-      isExternalSystemLeading: false,
     };
 
     // Clean up undefined and empty values
