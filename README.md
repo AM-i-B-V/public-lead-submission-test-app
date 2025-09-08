@@ -1,4 +1,4 @@
-# Public Lead Submission Test App
+# Sales Leads Widget Test App
 
 ## 🚀 Quick Start
 
